@@ -1,0 +1,106 @@
+% Preallocate large column vectors for calculations
+nSamples = 1e6;
+n1 = zeros(nSamples, 1);
+n2 = zeros(nSamples, 1);
+miu1pH = zeros(nSamples, 1);
+miu2pH = zeros(nSamples, 1);
+sigma1pH = zeros(nSamples, 1);
+sigma2pH = zeros(nSamples, 1);
+
+miu1CdS = zeros(nSamples, 1);
+miu2CdS = zeros(nSamples, 1);
+sigma1CdS = zeros(nSamples, 1);
+sigma2CdS = zeros(nSamples, 1);
+
+miu1CdD = zeros(nSamples, 1);
+miu2CdD = zeros(nSamples, 1);
+sigma1CdD = zeros(nSamples, 1);
+sigma2CdD = zeros(nSamples, 1);
+
+miu1CdP = zeros(nSamples, 1);
+miu2CdP = zeros(nSamples, 1);
+sigma1CdP = zeros(nSamples, 1);
+sigma2CdP = zeros(nSamples, 1);
+
+% Load data
+A = csvread('Datalog.csv');
+[M, ~] = size(A);
+
+for i = 1:nSamples
+    num = 109;
+    
+    % Randomly select num samples for B
+    [~, idx] = sort(rand(M, 1));
+    B = A(idx(1:num), :);
+    % The remainder
+    % C = A(idx(num+1:M), :);  % C is unused in the original code
+    
+    % Logical indexing for grouping
+    idx_n1 = B(:, 7) <= -1;
+    N1 = B(idx_n1, :);
+    
+    idx_n2 = B(:, 7) > -1;
+    N2 = B(idx_n2, :);
+    
+    % Sizes
+    n1(i) = size(N1, 1);
+    n2(i) = size(N2, 1);
+    
+    % Mean and standard deviation calculations
+    miu1pH(i) = mean(N1(:, 1));
+    sigma1pH(i) = std(N1(:, 1), 0);
+    miu2pH(i) = mean(N2(:, 1));
+    sigma2pH(i) = std(N2(:, 1), 0);
+    
+    miu1CdS(i) = mean(N1(:, 2));
+    sigma1CdS(i) = std(N1(:, 2), 0);
+    miu2CdS(i) = mean(N2(:, 2));
+    sigma2CdS(i) = std(N2(:, 2), 0);
+    
+    miu1CdD(i) = mean(N1(:, 4));
+    sigma1CdD(i) = std(N1(:, 4), 0);
+    miu2CdD(i) = mean(N2(:, 4));
+    sigma2CdD(i) = std(N2(:, 4), 0);
+    
+    miu1CdP(i) = mean(N1(:, 7));
+    sigma1CdP(i) = std(N1(:, 7), 0);
+    miu2CdP(i) = mean(N2(:, 7));
+    sigma2CdP(i) = std(N2(:, 7), 0);
+end
+
+% Combine results into one matrix
+E = [n1, n2, miu1pH, sigma1pH, miu2pH, sigma2pH, ...
+     miu1CdS, sigma1CdS, miu2CdS, sigma2CdS, ...
+     miu1CdD, sigma1CdD, miu2CdD, sigma2CdD, ...
+     miu1CdP, sigma1CdP, miu2CdP, sigma2CdP];
+
+% Summary statistics
+mn1 = mean(E(:, 1));
+mn2 = mean(E(:, 2));
+mm1pH = mean(E(:, 3));
+ms1pH = mean(E(:, 4));
+mm2pH = mean(E(:, 5));
+ms2pH = mean(E(:, 6));
+
+mm1CdS = mean(E(:, 7));
+ms1CdS = mean(E(:, 8));
+mm2CdS = mean(E(:, 9));
+ms2CdS = mean(E(:, 10));
+
+mm1CdD = mean(E(:, 11));
+ms1CdD = mean(E(:, 12));
+mm2CdD = mean(E(:, 13));
+ms2CdD = mean(E(:, 14));
+
+mm1CdP = mean(E(:, 15));
+ms1CdP = mean(E(:, 16));
+mm2CdP = mean(E(:, 17));
+ms2CdP = mean(E(:, 18));
+
+F = [mn1, mn2, mm1pH, ms1pH, mm2pH, ms2pH, ...
+     mm1CdS, ms1CdS, mm2CdS, ms2CdS, ...
+     mm1CdD, ms1CdD, mm2CdD, ms2CdD, ...
+     mm1CdP, ms1CdP, mm2CdP, ms2CdP];
+
+% Write results to Excel
+xlswrite('size109withstd01times1000000m.xlsx', F);
